@@ -25,23 +25,27 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("POST /api/listings body:", body);
 
-    // Build listing object matching table columns
+    // Build listing object matching common Supabase patterns
+    // Using a more flexible structure and explicitly mapping fields
     const listing = {
-      title: body.title,
-      brand: body.brand,
-      model: body.model,
+      title: body.title || `${body.brand} ${body.model}`,
       price: parseFloat(body.price),
       city: body.city,
-      description: body.description,
-      images: body.images || [],
-      contact: body.contact,
-      category: body.category,
-      type: body.type, // 'car' or 'moto'
-      year: body.year,
-      mileage: body.mileage,
-      fuel: body.fuel,
+      description: body.description || "",
+      images: Array.isArray(body.images) ? body.images : (body.images ? [body.images] : []),
       status: 'PENDING',
-      payload: body // Store original body in payload just in case schema differs
+      contact: body.contact || body.phone || "",
+      category: body.category || "Voitures",
+      type: body.type || 'car',
+      // Store everything else in payload
+      payload: {
+        ...body,
+        brand: body.brand,
+        model: body.model,
+        year: body.year,
+        mileage: body.mileage,
+        fuel: body.fuel
+      }
     };
 
     const { data, error } = await supabaseAdmin
@@ -51,14 +55,23 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("Supabase insert error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Supabase insert error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return NextResponse.json({ 
+        error: error.message, 
+        details: error.details,
+        code: error.code 
+      }, { status: 500 });
     }
 
-    console.log("Inserted listing:", data);
+    console.log("Inserted listing successfully:", data);
     return NextResponse.json(data);
   } catch (err: any) {
-    console.error("POST /api/listings unexpected error:", err);
+    console.error("POST /api/listings unexpected exception:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
