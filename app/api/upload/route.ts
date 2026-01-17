@@ -1,7 +1,5 @@
-import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import { existsSync } from 'fs';
+mport { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   try {
@@ -12,24 +10,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
     const urls: string[] = [];
 
     for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
-      
+      if (!file.type?.startsWith('image/')) continue;
+
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      
-      const uniqueName = `${crypto.randomUUID()}${path.extname(file.name)}`;
-      const filePath = path.join(uploadDir, uniqueName);
-      
-      await writeFile(filePath, buffer);
-      urls.push(`/uploads/${uniqueName}`);
+
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const fileName = ${crypto.randomUUID()}.${ext};
+      const filePath = listings/${fileName};
+
+      const { error: upErr } = await supabaseAdmin.storage
+        .from('listing-images')
+        .upload(filePath, buffer, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (upErr) {
+        return NextResponse.json({ error: upErr.message }, { status: 500 });
+      }
+
+      const { data } = supabaseAdmin.storage
+        .from('listing-images')
+        .getPublicUrl(filePath);
+
+      urls.push(data.publicUrl);
     }
 
     return NextResponse.json({ urls });

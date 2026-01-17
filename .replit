@@ -33,3 +33,10 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+SUPABASE_URL = "https://jgbsqexadsuavnozcatz.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnYnNxZXhhZHN1YXZub3pjYXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NDk1NzAsImV4cCI6MjA4NDIyNTU3MH0.wmy-pR2Tp83ogy3ULZdEkT9kWBND2qu3NMM4b7ChYdA"
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnYnNxZXhhZHN1YXZub3pjYXR6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODY0OTU3MCwiZXhwIjoyMDg0MjI1NTcwfQ.WQkXfygNwOKLnNFUbyZwn7BLYjlRzielD_WnkcY5hcs"
