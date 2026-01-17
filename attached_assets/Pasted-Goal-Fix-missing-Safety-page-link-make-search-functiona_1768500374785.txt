@@ -1,0 +1,33 @@
+Goal: Fix missing Safety page link, make search functional, and improve hero text readability with a subtle dark overlay. Keep the current UI design and layout unchanged (no redesign), only small safe changes.
+Tasks:
+1) “Conseils de sécurité” page not visible
+Do NOT recreate pages from scratch. Reuse the existing Safety page that already exists (the one used for /safety?redirect=...).
+Ensure there is a public route for it (example: /conseils-de-securite and/or /safety).
+Add it in the Footer under “LÉGAL / SUPPORT” (same style and spacing as other links).
+Make it bilingual:
+French: “Conseils de sécurité”
+Arabic: “نصائح السلامة”
+Clicking it should open the full Safety content page (not only the redirect overlay unless redirect param exists).
+2) Search bar is not working
+Make the hero search input actually filter/navigate:
+When the user types keywords (brand, model, city, year, fuel, price, mileage, any word from listing data), it should show matching results.
+On clicking “Rechercher” or pressing Enter: navigate to /listings and apply the search query.
+Implement “universal search” across all listing fields:
+title, brand, model, city, year, mileage, fuel, price, description (any available)
+If no results: show a clean “No results” state with a reset button.
+Keep existing UI, only wire logic.
+3) Hero background readability
+The hero background image (Dacia) is too bright and hides the text.
+Add a subtle dark overlay that:
+Keeps the image visible (only “a bit”)
+Makes text clearly readable
+Prefer a modern solution:
+gradient overlay (e.g. black 60% top → 30% bottom)
+or blur + dark overlay
+Do NOT change hero layout, fonts, buttons, or positioning. Only add overlay layer / adjust opacity.
+Acceptance checklist
+Safety page appears in footer/menu and can be visited directly.
+WhatsApp redirect still goes to the safety interstitial with countdown + skip.
+Search works from hero and filters listings.
+Hero text is readable and image still visible.
+Proceed with changes and report exact files modified + routes added.

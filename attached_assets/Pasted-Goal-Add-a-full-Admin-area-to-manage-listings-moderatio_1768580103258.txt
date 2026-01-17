@@ -1,0 +1,54 @@
+Goal: Add a full Admin area to manage listings moderation + manage "Tendances" videos shown on the homepage.
+Important: Keep the existing UI/design of the public site unchanged. Only add admin functionality + minimal admin UI.
+
+PART A — ADMIN AUTH + ROUTES
+1) Add protected admin routes (e.g. /admin).
+2) Require admin login (username/password) before accessing /admin.
+   - If auth already exists in the project, reuse it. Do not break existing routing.
+3) If user is not logged in as admin, redirect to /admin/login.
+
+PART B — LISTINGS MODERATION (same concept as old Moto0 admin)
+1) In /admin, create "Admin Listings" page with tabs:
+   - Pending, Active, Rejected, Sold, All
+2) Each listing row must show: id, title, type (car/moto), city, price, status, createdAt.
+3) Actions for each listing:
+   - Approve (Pending -> Active)
+   - Reject (Pending -> Rejected) with optional reason
+   - Mark Sold/Vendu (Active -> Sold)
+   - Delete
+4) IMPORTANT business logic:
+   - Sold listings must remain visible publicly BUT:
+     - show a clear SOLD/VENDU overlay badge
+     - disable WhatsApp contact for sold items
+     - prevent opening sold listing details OR show a toast “This listing is sold” (whichever is already used in this project—reuse existing behavior)
+5) Add Refresh button + loading/error states.
+6) Use existing data layer if present. If the project currently uses mock data, implement it with a simple JSON store and local API endpoints so admin actions update what the public site displays.
+
+PART C — TENDANCES (HOMEPAGE VIDEOS) ADMIN MANAGER
+1) There is already a "Tendances" section on the homepage.
+2) Add a new admin page: /admin/trends (or a tab inside /admin) to manage Tendances items.
+3) Admin can:
+   - Add new video item
+   - Edit existing item
+   - Delete item
+   - Reorder items (up/down)
+4) Video item fields:
+   - title (FR + AR)
+   - platform (Instagram/TikTok/YouTube)
+   - url (the video link)
+   - thumbnailUrl (optional; if empty, show a default placeholder)
+   - isActive (toggle)
+5) On the homepage, Tendances must render ONLY active items in the saved order.
+6) Keep the public design the same; only data becomes editable by admin.
+
+PART D — QA + SAFETY
+1) Do not break existing pages, routes, language switch (FR/AR), WhatsApp flow, search, footer pages.
+2) Add basic validation:
+   - URL must be valid
+   - title required in both languages
+3) Provide a short checklist in the final message: how to test admin login, approve/reject listing, add a trends video and see it appear on homepage.
+
+Deliverables:
+- New admin pages + minimal admin navigation links inside admin only
+- Data persistence approach explained (mock JSON or API)
+- No unnecessary UI redesign

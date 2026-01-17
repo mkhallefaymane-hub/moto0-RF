@@ -1,0 +1,38 @@
+You are working on the Moto0 (Moroccan vehicle marketplace) codebase in Replit.
+
+Goal: Add missing features ONLY (no redesign, keep UI look the same, minimal changes). 
+Do NOT remove existing features. Do not change routing structure unless necessary.
+
+FEATURE 1 — WhatsApp number should come from the seller’s listing form
+- In the "Create Listing" / seller form, ensure there is a field for WhatsApp phone number.
+- Save this WhatsApp number with the listing (DB + API + client types).
+- On the listing details page, the WhatsApp contact button must use the WhatsApp number stored on that listing (seller-provided), not a hardcoded/global number.
+- Normalize Moroccan formats (06/07, +212, 00212) to WhatsApp format.
+
+FEATURE 2 — Safety interstitial before opening WhatsApp
+When the user clicks the WhatsApp contact button:
+1) Do NOT open WhatsApp immediately.
+2) Navigate to the existing "Conseils de sécurité" page (bilingual FR/AR).
+3) Show a 5-second countdown overlay/modal on that page ("Redirecting to WhatsApp in 5…").
+4) After 5 seconds, automatically open WhatsApp in a new tab with the prefilled message.
+5) Show a clearly visible "Skip" button/icon (high contrast, top-right) so the user can open WhatsApp immediately.
+6) Make sure the WhatsApp target URL is preserved (pass it via query param like ?redirect=... or state). The "Skip" button uses the same redirect.
+7) If the page is in Arabic, show Arabic text; if French, show French text (use existing i18n).
+
+FEATURE 3 — Search should match ANY text from listings (full-text like behavior)
+- Improve the search bar so it can find listings using ANY keyword present in the listing fields: title, brand, model, description, city, year, mileage, price, fuel, gearbox, etc.
+- If the current backend is SQL, implement a safe server-side search that checks multiple columns with ILIKE/LIKE (or full-text if available) and returns relevant results.
+- If search is currently client-side, upgrade it to server-side and keep the UI the same.
+- Make sure it’s not vulnerable to SQL injection (use parameterized queries).
+- Return results even if the keyword matches part of a word.
+
+Constraints:
+- Keep design/UI unchanged (only add overlay for countdown + skip).
+- Add/adjust minimal DB schema changes if needed (migration if project uses it).
+- Update shared types, validation, and translation keys (FR/AR).
+- Add basic error handling: if listing has no WhatsApp number, disable button and show toast.
+
+Deliverables:
+- Working end-to-end flow: create listing with WhatsApp -> listing detail -> click WhatsApp -> safety page countdown -> redirect -> WhatsApp opens.
+- Search returns results for any keyword contained in listing fields.
+- Provide a short summary of what files were changed and how to test quickly.

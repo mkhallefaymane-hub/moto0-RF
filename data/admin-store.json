@@ -1,0 +1,50 @@
+{
+  "listings": [
+    {
+      "id": 1,
+      "status": "SOLD"
+    },
+    {
+      "id": 2,
+      "status": "SOLD"
+    },
+    {
+      "id": 3,
+      "status": "SOLD"
+    },
+    {
+      "id": 4,
+      "status": "SOLD"
+    },
+    {
+      "id": 5,
+      "status": "SOLD"
+    },
+    {
+      "id": 6,
+      "status": "SOLD"
+    },
+    {
+      "id": 1768583079230,
+      "status": "PENDING",
+      "details": {
+        "type": "Voiture",
+        "title": "rs6",
+        "brand": "volkswagen",
+        "model": "2025",
+        "year": "2025",
+        "city": "el jadida",
+        "price": "500000",
+        "mileage": "99999",
+        "fuel": "Essence",
+        "description": "comme neuf",
+        "whatsapp": "0716594562",
+        "images": [
+          "/uploads/7c5a86c0-9ae0-44b2-a81a-cc2da2863a4b.jpg"
+        ]
+      },
+      "createdAt": "2026-01-16T17:04:39.629Z"
+    }
+  ],
+  "trends": []
+}

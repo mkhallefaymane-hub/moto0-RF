@@ -1,0 +1,24 @@
+{
+  "listings": [
+    {
+      "id": "de128b4b-e4d4-41c0-ba27-fff17679009c",
+      "type": "Voiture",
+      "title": "rs6",
+      "brand": "volkswagen",
+      "model": "rs6 2025",
+      "year": "2024",
+      "city": "el jadida",
+      "price": "500000",
+      "mileage": "119999",
+      "fuel": "Essence",
+      "description": "etat comme neuf ",
+      "whatsapp": "0716594562",
+      "images": [
+        "/uploads/da43ec71-2609-4666-9a65-78f4bba6fa9c.jpg"
+      ],
+      "category": "car",
+      "status": "APPROVED",
+      "createdAt": "2026-01-16T17:18:41.395Z"
+    }
+  ]
+}

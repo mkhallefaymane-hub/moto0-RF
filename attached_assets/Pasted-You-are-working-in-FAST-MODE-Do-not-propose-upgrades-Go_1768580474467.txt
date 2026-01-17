@@ -1,0 +1,53 @@
+You are working in FAST MODE. Do not propose upgrades.
+
+Goal: Implement a minimal admin panel for Moto0 with listing moderation + homepage trends manager, using local JSON storage only.
+
+Hard constraints:
+- Keep the existing UI/design unchanged for public pages (homepage/listings/detail).
+- No database, no auth, no external services.
+- Use ONLY local JSON files + simple Next.js API routes (or equivalent in this repo).
+- Small, incremental changes; avoid refactors.
+
+Data storage:
+- Create a local JSON file (e.g. /data/admin-store.json) with two arrays:
+  1) listings: [{ id, status }] where status is "PENDING" | "APPROVED" | "REJECTED" | "SOLD"
+  2) trends: [{ id, title, url, platform }] (platform optional)
+- If the project already has mock listings data, do NOT move it. Only store statuses in the JSON store keyed by listing id.
+
+Admin panel:
+1) Add a route/page: /admin
+2) Show two tabs/sections:
+   A) Listings moderation:
+      - Table: id, title, type (car/moto), city, price, current status
+      - Buttons per row:
+        Approve -> status=APPROVED
+        Reject  -> status=REJECTED
+        Mark Sold -> status=SOLD
+        Reset -> status=PENDING
+      - Use API routes to read/write the JSON store.
+   B) Trends manager:
+      - List existing trends videos
+      - Form to add new video (title + url + optional platform)
+      - Button to delete
+
+Public behavior:
+3) Public listings/cards must reflect SOLD status:
+   - If listing is SOLD, show a clear "SOLD / VENDU" badge overlay on the card image.
+   - Keep card layout the same; only overlay/badge.
+4) Listing detail page:
+   - If SOLD, disable WhatsApp/contact CTA and show a small notice "Sold" (bilingual FR/AR using existing i18n).
+5) Homepage "Tendances" section:
+   - Read videos from the JSON store trends array.
+   - Render them exactly in the existing Tendances UI (do not redesign).
+   - If the Tendances UI is currently static, replace only the data source with the JSON data.
+
+Internationalization:
+6) Any new labels in admin can be French only (OK), but public-facing SOLD text must be bilingual FR/AR via existing i18n keys.
+
+Testing:
+7) Add a quick manual test note at the end:
+   - Go to /admin, mark a listing SOLD, verify badge appears on public card and contact disabled on detail.
+   - Add a trends video in /admin and verify it appears on homepage.
+
+Deliverable:
+- Implement the changes, keep edits minimal, and do not change unrelated code.
