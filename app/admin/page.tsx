@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { supabaseAnonClient } from "@/lib/supabase"
 
 export default function AdminPage() {
   const [data, setData] = useState<any>({ listings: [], trends: [] })
@@ -37,15 +38,16 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [adminRes, listingsRes] = await Promise.all([
-        fetch('/api/admin'),
-        fetch('/api/listings')
-      ])
-      const adminJson = await adminRes.json()
-      const listingsJson = await listingsRes.json()
-      setData({ ...adminJson, listings: listingsJson.listings })
-    } catch (err) {
-      toast.error("Failed to load admin data")
+      const { data: listings, error } = await supabaseAnonClient
+        .from("listings")
+        .select("*")
+        .order("created_at", { ascending: false })
+      
+      if (error) throw error
+
+      setData({ trends: [], listings: listings || [] })
+    } catch (err: any) {
+      toast.error("Failed to load admin data: " + err.message)
     } finally {
       setLoading(false)
     }
@@ -53,17 +55,34 @@ export default function AdminPage() {
 
   const updateListingStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch('/api/listings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status })
-      })
-      if (res.ok) {
-        toast.success(`Status updated to ${status}`)
-        fetchData()
-      }
-    } catch (err) {
-      toast.error("Update failed")
+      const { error } = await supabaseAnonClient
+        .from("listings")
+        .update({ status })
+        .eq("id", id)
+      
+      if (error) throw error
+      
+      toast.success(`Status updated to ${status}`)
+      fetchData()
+    } catch (err: any) {
+      toast.error("Update failed: " + err.message)
+    }
+  }
+
+  const deleteListing = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this listing?")) return
+    try {
+      const { error } = await supabaseAnonClient
+        .from("listings")
+        .delete()
+        .eq("id", id)
+      
+      if (error) throw error
+      
+      toast.success("Listing deleted")
+      fetchData()
+    } catch (err: any) {
+      toast.error("Delete failed: " + err.message)
     }
   }
 
@@ -137,11 +156,12 @@ export default function AdminPage() {
                   <TableBody>
                     {allListings.map((listing: any) => {
                       const status = listing.status || "PENDING"
+                      const details = listing.payload || listing
                       return (
                         <TableRow key={listing.id}>
-                          <TableCell>{listing.title}</TableCell>
-                          <TableCell>{listing.city}</TableCell>
-                          <TableCell>{listing.price} DH</TableCell>
+                          <TableCell>{details.title}</TableCell>
+                          <TableCell>{details.city}</TableCell>
+                          <TableCell>{details.price} DH</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                               status === 'APPROVED' ? 'bg-green-500/20 text-green-500' :
@@ -156,6 +176,7 @@ export default function AdminPage() {
                             <Button size="sm" variant="outline" onClick={() => updateListingStatus(listing.id, 'APPROVED')}>Approve</Button>
                             <Button size="sm" variant="outline" onClick={() => updateListingStatus(listing.id, 'REJECTED')}>Reject</Button>
                             <Button size="sm" variant="outline" onClick={() => updateListingStatus(listing.id, 'SOLD')}>Mark Sold</Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteListing(listing.id)}>Delete</Button>
                             <Button size="sm" variant="ghost" onClick={() => updateListingStatus(listing.id, 'PENDING')}>Reset</Button>
                           </TableCell>
                         </TableRow>
