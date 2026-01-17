@@ -12,11 +12,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { supabaseAnonClient } from "@/lib/supabase"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function AdminPage() {
   const [data, setData] = useState<any>({ listings: [], trends: [] })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [newTrend, setNewTrend] = useState({ titleFr: "", titleAr: "", url: "", platform: "YouTube" })
 
   const router = useRouter()
@@ -33,21 +34,29 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_URL) {
+      setError("Configuration error: Supabase URL is missing.")
+      setLoading(false)
+      return
+    }
     fetchData()
   }, [])
 
   const fetchData = async () => {
     try {
-      const { data: listings, error } = await supabaseAnonClient
+      setError(null)
+      const { data: listings, error: listingsError } = await supabase
         .from("listings")
         .select("*")
         .order("created_at", { ascending: false })
       
-      if (error) throw error
+      if (listingsError) throw listingsError
 
       setData({ trends: [], listings: listings || [] })
     } catch (err: any) {
-      toast.error("Failed to load admin data: " + err.message)
+      console.error("Fetch error:", err)
+      setError(err.message || "Failed to load data")
+      toast.error("Failed to load admin data")
     } finally {
       setLoading(false)
     }
@@ -55,7 +64,7 @@ export default function AdminPage() {
 
   const updateListingStatus = async (id: string, status: string) => {
     try {
-      const { error } = await supabaseAnonClient
+      const { error } = await supabase
         .from("listings")
         .update({ status })
         .eq("id", id)
@@ -72,7 +81,7 @@ export default function AdminPage() {
   const deleteListing = async (id: string) => {
     if (!confirm("Are you sure you want to delete this listing?")) return
     try {
-      const { error } = await supabaseAnonClient
+      const { error } = await supabase
         .from("listings")
         .delete()
         .eq("id", id)
@@ -119,6 +128,13 @@ export default function AdminPage() {
   }
 
   if (loading) return <div className="p-20 text-center">Loading Admin...</div>
+  if (error) return (
+    <div className="p-20 text-center space-y-4">
+      <div className="text-destructive font-bold text-xl">Error</div>
+      <p className="text-muted-foreground">{error}</p>
+      <Button onClick={fetchData}>Retry</Button>
+    </div>
+  )
 
   const allListings = data.listings || []
 
