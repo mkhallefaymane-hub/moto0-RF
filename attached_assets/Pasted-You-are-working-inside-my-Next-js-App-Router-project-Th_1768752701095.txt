@@ -1,0 +1,129 @@
+You are working inside my Next.js (App Router) project. The website is deployed on Vercel and developed on Replit.
+Goal: Fix ALL issues end-to-end: Publish listing, image upload, admin moderation, WhatsApp phone normalization, and remove all 500 errors.
+Do NOT break the UI. Only minimal UI changes if required to connect correct API fields. Focus on backend correctness, Supabase integration, and reliable persistence.
+
+CURRENT PROBLEMS:
+1) Publish listing button stuck on “sending / envoi en cours” and POST /api/listings returns 500.
+2) Listings do not appear in /admin (admin cannot approve/reject/delete).
+3) I migrated from JSON/fs storage to Supabase but data is not inserted (Supabase tables stay empty).
+4) WhatsApp number format must accept Moroccan +212 and create valid wa.me link.
+5) Ensure environment variables work on BOTH Replit and Vercel.
+6) Add proper server logs + return readable error messages (not silent fail).
+
+CONSTRAINTS:
+- Use Supabase Postgres for listings & trends. No fs, no JSON persistence, no writing to disk for data.
+- Use Supabase Storage bucket for images (e.g. "listings"). No local /public/uploads.
+- Use supabaseAdmin (service role key) ONLY on server routes (API). Never expose service role to client.
+- Client uses anon key and project url when needed.
+- Keep endpoints compatible with existing frontend.
+
+IMPLEMENTATION TASKS (DO ALL):
+A) Create/verify Supabase schema:
+   1. Table: listings
+      Columns:
+      - id uuid primary key default gen_random_uuid()
+      - title text
+      - price int4 (or numeric)
+      - city text
+      - description text
+      - images jsonb (array of public URLs)
+      - whatsapp text
+      - status text default 'PENDING'
+      - created_at timestamptz default now()
+   2. Table: trends (if used)
+      - id uuid primary key default gen_random_uuid()
+      - title text
+      - video_url text
+      - active boolean default true
+      - created_at timestamptz default now()
+   3. Enable RLS properly:
+      - listings: allow public insert (anon) for new listings, allow public select only for APPROVED listings.
+      - admin actions (update status/delete) must be done server-side with service role (bypass RLS).
+      Provide SQL in /supabase/schema.sql or a migration file.
+
+B) Create /lib/supabase.ts:
+   - export supabasePublic (anon) for client usage (NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY).
+   - export supabaseAdmin for server usage (SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY).
+   - Add runtime checks and meaningful errors if env missing.
+   - Ensure no client bundle imports service role.
+
+C) Fix API routes:
+   1. app/api/listings/route.ts
+      - GET: return approved listings by default (status='APPROVED'). If query param admin=1 and request is authenticated admin, return all.
+      - POST: create listing in Supabase with status PENDING. Validate required fields. Return created row.
+      - PATCH: update listing status (APPROVED/REJECTED) by id (admin only).
+      - DELETE: delete listing by id (admin only).
+      - Add console.error logs + return JSON errors.
+   2. app/api/upload/route.ts
+      - Accept multipart formData images[].
+      - Upload each image to Supabase Storage bucket "listings".
+      - Return public URLs array.
+      - Use server-side supabaseAdmin.
+      - Fix any syntax errors (template strings etc).
+   3. app/api/admin/route.ts
+      - Must manage trends CRUD in Supabase (not JSON).
+      - Ensure admin can toggle/add/delete trends.
+
+D) Fix Admin authentication:
+   - Ensure /admin is protected.
+   - Use a simple session cookie with SESSION_SECRET and admin password stored in env (ADMIN_PASSWORD).
+   - Existing login route: app/api/admin/login and logout should work.
+   - If missing, implement:
+     - POST /api/admin/login {password} sets httpOnly cookie "admin_session".
+     - GET /api/admin/me returns {authenticated:true/false}.
+   - Admin pages must redirect to login if not authenticated.
+
+E) Fix frontend field mismatch (minimal changes only):
+   - Ensure sell form sends fields that match API/table:
+     title, price (number), city, description, whatsapp, images (array URLs).
+   - Ensure publish button finishes correctly (handle success/error).
+   - Ensure admin UI fetches from /api/listings (admin view should use admin endpoint returning all statuses).
+   - Ensure admin approve/reject/delete triggers PATCH/DELETE and refreshes list.
+
+F) WhatsApp normalization:
+   - Implement helper normalizeWhatsapp(input):
+     - Accept: "06...", "07...", "+2126...", "2126...", spaces, dashes.
+     - Output E.164 without plus for wa.me: e.g. "2126xxxxxxx".
+   - Ensure wa.me link is valid:
+     https://wa.me/{normalized}?text=...
+   - Use the helper everywhere (sell form and listings grid and safety redirect).
+
+G) Debugging and verification:
+   - Add clear logs in API routes.
+   - Provide a checklist and run these tests:
+     1) Upload images returns urls
+     2) POST /api/listings returns 200 with created listing
+     3) Supabase table listings contains new row
+     4) /api/listings (public) returns approved only
+     5) Admin login works and /admin shows PENDING listings
+     6) Admin approve changes status and listing appears publicly
+     7) Delete works
+     8) WhatsApp link opens with correct number
+
+H) Environment variables:
+   - Vercel must have:
+     NEXT_PUBLIC_SUPABASE_URL
+     NEXT_PUBLIC_SUPABASE_ANON_KEY
+     SUPABASE_URL
+     SUPABASE_SERVICE_ROLE_KEY
+     SESSION_SECRET
+     ADMIN_PASSWORD
+   - Replit secrets must have same.
+   - If code currently expects SUPABASE_ANON_KEY without NEXT_PUBLIC prefix, refactor safely.
+
+DELIVERABLE:
+- Commit all changes.
+- Ensure pnpm run build passes on Vercel.
+- No remaining 500 errors.
+- Admin dashboard fully functional and protected.
+- Publishing listing works and saves to Supabase and shows in admin.
+
+Start by locating current files:
+- app/sell/page.tsx
+- app/admin/page.tsx
+- app/api/listings/route.ts
+- app/api/upload/route.ts
+- app/api/admin/route.ts
+- components/listings-grid.tsx
+- app/safety/page.tsx
+Then implement fixes with minimal UI changes.

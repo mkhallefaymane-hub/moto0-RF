@@ -12,47 +12,28 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { supabase } from "@/lib/supabaseClient"
+import { supabasePublic } from "@/lib/supabase"
 
 export default function AdminPage() {
   const [data, setData] = useState<any>({ listings: [], trends: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newTrend, setNewTrend] = useState({ titleFr: "", titleAr: "", url: "", platform: "YouTube" })
+  const [newTrend, setNewTrend] = useState({ title: "", video_url: "" })
 
   const router = useRouter()
   const { t } = useLanguage()
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' })
-      toast.success(t("Déconnecté", "تم تسجيل الخروج"))
-      router.push('/admin/login')
-    } catch (err) {
-      toast.error("Logout failed")
-    }
-  }
-
-  useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_URL) {
-      setError("Configuration error: Supabase URL is missing.")
-      setLoading(false)
-      return
-    }
-    fetchData()
-  }, [])
-
   const fetchData = async () => {
     try {
       setError(null)
-      const { data: listings, error: listingsError } = await supabase
-        .from("listings")
-        .select("*")
-        .order("created_at", { ascending: false })
-      
-      if (listingsError) throw listingsError
+      const res = await fetch('/api/listings?admin=1')
+      const json = await res.json()
+      if (json.error) throw new Error(json.error)
 
-      setData({ trends: [], listings: listings || [] })
+      const trendsRes = await fetch('/api/admin')
+      const trendsJson = await trendsRes.json()
+
+      setData({ trends: trendsJson.trends || [], listings: json.listings || [] })
     } catch (err: any) {
       console.error("Fetch error:", err)
       setError(err.message || "Failed to load data")
@@ -62,14 +43,18 @@ export default function AdminPage() {
     }
   }
 
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   const updateListingStatus = async (id: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from("listings")
-        .update({ status })
-        .eq("id", id)
-      
-      if (error) throw error
+      const res = await fetch('/api/listings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      })
+      if (!res.ok) throw new Error("Update failed")
       
       toast.success(`Status updated to ${status}`)
       fetchData()
@@ -81,12 +66,8 @@ export default function AdminPage() {
   const deleteListing = async (id: string) => {
     if (!confirm("Are you sure you want to delete this listing?")) return
     try {
-      const { error } = await supabase
-        .from("listings")
-        .delete()
-        .eq("id", id)
-      
-      if (error) throw error
+      const res = await fetch(`/api/listings?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error("Delete failed")
       
       toast.success("Listing deleted")
       fetchData()
@@ -100,15 +81,15 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'add_trend', trend: newTrend })
       })
-      if (res.ok) {
-        toast.success("Trend added")
-        setNewTrend({ titleFr: "", titleAr: "", url: "", platform: "YouTube" })
-        fetchData()
-      }
-    } catch (err) {
-      toast.error("Add failed")
+      if (!res.ok) throw new Error("Add failed")
+      toast.success("Trend added")
+      setNewTrend({ title: "", video_url: "" })
+      fetchData()
+    } catch (err: any) {
+      toast.error("Add failed: " + err.message)
     }
   }
 
@@ -169,15 +150,14 @@ export default function AdminPage() {
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                          <TableBody>
                     {allListings.map((listing: any) => {
                       const status = listing.status || "PENDING"
-                      const details = listing.payload || listing
                       return (
                         <TableRow key={listing.id}>
-                          <TableCell>{details.title}</TableCell>
-                          <TableCell>{details.city}</TableCell>
-                          <TableCell>{details.price} DH</TableCell>
+                          <TableCell>{listing.title}</TableCell>
+                          <TableCell>{listing.city}</TableCell>
+                          <TableCell>{listing.price} DH</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                               status === 'APPROVED' ? 'bg-green-500/20 text-green-500' :

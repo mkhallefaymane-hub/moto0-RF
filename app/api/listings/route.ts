@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { normalizeWhatsApp } from '@/lib/whatsapp';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const { data, error } = await supabaseAdmin
+    const { searchParams } = new URL(req.url);
+    const isAdmin = searchParams.get('admin') === '1';
+    
+    let query = supabaseAdmin
       .from('listings')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (!isAdmin) {
+      query = query.eq('status', 'APPROVED');
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("GET /api/listings error:", error);
@@ -25,27 +35,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("POST /api/listings body:", body);
 
-    // Build listing object matching common Supabase patterns
-    // Using a more flexible structure and explicitly mapping fields
     const listing = {
-      title: body.title || `${body.brand} ${body.model}`,
+      title: body.title,
       price: parseFloat(body.price),
       city: body.city,
-      description: body.description || "",
-      images: Array.isArray(body.images) ? body.images : (body.images ? [body.images] : []),
+      description: body.description,
+      images: body.images || [],
+      whatsapp: normalizeWhatsApp(body.whatsapp || body.contact),
       status: 'PENDING',
-      contact: body.contact || body.phone || "",
-      category: body.category || "Voitures",
-      type: body.type || 'car',
-      // Store everything else in payload
-      payload: {
-        ...body,
-        brand: body.brand,
-        model: body.model,
-        year: body.year,
-        mileage: body.mileage,
-        fuel: body.fuel
-      }
     };
 
     const { data, error } = await supabaseAdmin
@@ -55,20 +52,10 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("Supabase insert error details:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      });
-      return NextResponse.json({ 
-        error: error.message, 
-        details: error.details,
-        code: error.code 
-      }, { status: 500 });
+      console.error("Supabase insert error details:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log("Inserted listing successfully:", data);
     return NextResponse.json(data);
   } catch (err: any) {
     console.error("POST /api/listings unexpected exception:", err);
