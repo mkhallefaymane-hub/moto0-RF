@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
 
 export async function POST(req: Request) {
   try {
@@ -7,43 +12,37 @@ export async function POST(req: Request) {
     const files = formData.getAll("images") as File[];
 
     if (!files || files.length === 0) {
-      return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
+      return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
     const urls: string[] = [];
 
     for (const file of files) {
-      if (!file.type?.startsWith("image/")) continue;
-
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const ext = file.name.split(".").pop() || "jpg";
       const fileName = `${crypto.randomUUID()}.${ext}`;
-      const filePath = `listings/${fileName}`;
 
-      const { error: upErr } = await supabaseAdmin.storage
+      const buffer = Buffer.from(await file.arrayBuffer());
+
+      const { error } = await supabase.storage
         .from("listings")
-        .upload(filePath, buffer, {
+        .upload(fileName, buffer, {
           contentType: file.type,
           upsert: false,
         });
 
-      if (upErr) {
-        console.error("Supabase storage upload error:", upErr);
-        return NextResponse.json({ error: upErr.message }, { status: 500 });
+      if (error) {
+        console.error("UPLOAD ERROR:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      const { data } = supabaseAdmin.storage
-        .from("listings")
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from("listings").getPublicUrl(fileName);
 
       urls.push(data.publicUrl);
     }
 
     return NextResponse.json({ urls });
-  } catch (error: any) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed: " + error.message }, { status: 500 });
+  } catch (err) {
+    console.error("UPLOAD FATAL:", err);
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
