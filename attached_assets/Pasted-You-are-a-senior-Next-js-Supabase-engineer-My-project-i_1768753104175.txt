@@ -1,0 +1,57 @@
+You are a senior Next.js + Supabase engineer.
+
+My project is a Next.js (App Router) app deployed on Vercel, using Supabase (Database + Storage).
+
+CURRENT PROBLEMS:
+1) POST /api/upload returns 500 Internal Server Error.
+2) The "Publier l'annonce" button stays stuck on "envoi en cours".
+3) Listings are not saved or do not appear in the admin page.
+4) Admin page sometimes crashes or shows no data.
+5) Supabase tables exist but remain empty.
+6) /api/listings sometimes returns an empty array.
+7) Supabase credentials errors happened before (supabaseUrl missing).
+
+WHAT I WANT:
+- A clean, correct, production-ready setup.
+- Listings must be saved in Supabase (not JSON files, not filesystem).
+- Image uploads must go to Supabase Storage.
+- Admin page must list all submitted listings and allow approval / deletion.
+- No client-side crashes.
+- No 500 errors.
+
+YOUR TASKS:
+1) Audit all API routes under /app/api (listings, admin, upload).
+2) Remove any usage of fs, JSON files, or local storage.
+3) Ensure all API routes use Supabase correctly:
+   - supabaseAdmin with SERVICE_ROLE_KEY on server
+   - supabasePublic with ANON_KEY on client
+4) Fix /app/api/upload/route.ts:
+   - Upload images to Supabase Storage bucket "listings"
+   - Return public URLs
+   - Proper error handling (no silent failures)
+5) Fix /app/api/listings/route.ts:
+   - POST inserts a listing into Supabase table "listings"
+   - GET returns all listings
+   - status defaults to "PENDING"
+6) Fix Admin logic:
+   - Admin page fetches from Supabase
+   - Shows all listings (including PENDING)
+7) Verify environment variables usage:
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - SUPABASE_SERVICE_ROLE_KEY
+8) Add defensive checks and console logs where needed.
+9) Make sure the app works both locally (Replit) and on Vercel.
+
+OUTPUT EXPECTED:
+- Corrected code for:
+  • lib/supabase.ts
+  • app/api/upload/route.ts
+  • app/api/listings/route.ts
+  • app/api/admin/route.ts (if needed)
+- Clear explanation of what was wrong and why.
+- Confirmation checklist to test:
+  ✓ Upload image
+  ✓ Publish listing
+  ✓ Listing appears in admin
+  ✓ No 500 errors
