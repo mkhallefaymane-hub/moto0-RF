@@ -12,7 +12,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { supabasePublic } from "@/lib/supabase"
 
 export default function AdminPage() {
   const [data, setData] = useState<any>({ listings: [], trends: [] })
@@ -97,13 +96,13 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'delete_trend', id })
       })
-      if (res.ok) {
-        toast.success("Trend deleted")
-        fetchData()
-      }
-    } catch (err) {
+      if (!res.ok) throw new Error("Delete failed")
+      toast.success("Trend deleted")
+      fetchData()
+    } catch (err: any) {
       toast.error("Delete failed")
     }
   }
@@ -125,7 +124,6 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button variant="outline" onClick={handleLogout}>{t("Déconnexion", "تسجيل الخروج")}</Button>
         </div>
         
         <Tabs defaultValue="listings">
@@ -150,7 +148,7 @@ export default function AdminPage() {
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                          <TableBody>
+                  <TableBody>
                     {allListings.map((listing: any) => {
                       const status = listing.status || "PENDING"
                       return (
@@ -195,8 +193,8 @@ export default function AdminPage() {
                     {data.trends.map((trend: any) => (
                       <div key={trend.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <p className="font-bold">{trend.titleFr}</p>
-                          <p className="text-xs text-muted-foreground">{trend.url}</p>
+                          <p className="font-bold">{trend.title}</p>
+                          <p className="text-xs text-muted-foreground">{trend.video_url}</p>
                         </div>
                         <Button variant="destructive" size="sm" onClick={() => deleteTrend(trend.id)}>Delete</Button>
                       </div>
@@ -212,28 +210,12 @@ export default function AdminPage() {
                 <CardContent>
                   <form onSubmit={addTrend} className="space-y-4">
                     <div className="grid gap-2">
-                      <Label>Title (FR)</Label>
-                      <Input required value={newTrend.titleFr} onChange={e => setNewTrend({...newTrend, titleFr: e.target.value})} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Title (AR)</Label>
-                      <Input required value={newTrend.titleAr} onChange={e => setNewTrend({...newTrend, titleAr: e.target.value})} />
+                      <Label>Title</Label>
+                      <Input required value={newTrend.title} onChange={e => setNewTrend({...newTrend, title: e.target.value})} />
                     </div>
                     <div className="grid gap-2">
                       <Label>Video URL</Label>
-                      <Input required type="url" value={newTrend.url} onChange={e => setNewTrend({...newTrend, url: e.target.value})} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Platform</Label>
-                      <select 
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        value={newTrend.platform} 
-                        onChange={e => setNewTrend({...newTrend, platform: e.target.value})}
-                      >
-                        <option>YouTube</option>
-                        <option>TikTok</option>
-                        <option>Instagram</option>
-                      </select>
+                      <Input required type="url" value={newTrend.video_url} onChange={e => setNewTrend({...newTrend, video_url: e.target.value})} />
                     </div>
                     <Button type="submit" className="w-full">Add Video</Button>
                   </form>
