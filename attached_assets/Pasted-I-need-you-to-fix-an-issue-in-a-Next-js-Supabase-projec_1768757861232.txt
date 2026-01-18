@@ -1,0 +1,58 @@
+I need you to fix an issue in a Next.js + Supabase project without breaking any existing functionality and without deleting or modifying existing listings in the database.
+Current problem:
+The WhatsApp button works correctly.
+Clicking on a listing card does NOT open the listing details page.
+On the home page, some listing information appears empty, even though the data exists in Supabase.
+Listings are already stored in Supabase and must be preserved.
+This is most likely caused by a field name mismatch or an incorrect routing/id usage between the database, API, and UI.
+What you must do (very important):
+Check the listings fetch flow
+Inspect where listings are fetched (e.g. /api/listings, lib/supabase, or server actions).
+Inspect components like ListingsGrid, ListingCard, or similar.
+Inspect the listing details page such as:
+app/listings/[id]/page.tsx
+or app/listing/[id]/page.tsx
+Make sure clicking a card navigates to the correct route using the real Supabase listing id.
+Normalize field names (DO NOT change database schema)
+Do NOT rename columns in Supabase.
+If Supabase uses fields like:
+id
+title
+brand
+model
+price
+city
+mileage
+description
+images
+phone or whatsapp
+created_at
+status
+And the UI expects different names (e.g. name, km, location), 👉 create a single normalization layer (in API or helper function) that maps DB fields to UI fields.
+Example: normalize inside /api/listings or lib/normalizeListing.ts.
+Fix the listing details page
+Ensure the page:
+Receives the correct id
+Fetches the correct listing from Supabase
+Displays images, title, price, city, mileage, description
+Do NOT change the WhatsApp logic if it already works.
+Fix the home page cards
+Ensure all visible data comes from the normalized listing object.
+No empty fields if data exists in Supabase.
+Do NOT remove or reset any data
+No table drops
+No truncation
+No schema recreation
+Existing listings must stay visible after the fix.
+Debug carefully
+Temporarily add logs if needed to verify:
+/api/listings response
+id passed to the card click
+Remove debug logs after fixing.
+Final expected result:
+Clicking a listing card opens the correct details page
+Listing data appears correctly on home and details pages
+WhatsApp button still works
+Existing listings remain untouched
+No design or feature regression
+Start by identifying where the mismatch occurs: API response, routing, or UI props, then apply a minimal and safe fix.

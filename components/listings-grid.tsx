@@ -4,13 +4,13 @@ import { useState, useEffect } from "react"
 import { Heart, MapPin, Gauge, Calendar, Fuel, ChevronRight, ChevronLeft, MessageSquare, Check, Inbox } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/lib/language-context"
-
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function ListingsGrid() {
   const { t, dir, formatPrice } = useLanguage()
   const router = useRouter()
-  const [savedIds, setSavedIds] = useState<number[]>([])
+  const [savedIds, setSavedIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState("all")
   const [adminData, setAdminData] = useState<any>({ listings: [], trends: [] })
@@ -25,13 +25,11 @@ export function ListingsGrid() {
     window.addEventListener("search-listings", handleSearch)
     window.addEventListener("filter-category", handleCategory)
     
-    // Fetch admin data to get statuses
-    Promise.all([
-      fetch('/api/admin').then(res => res.json()),
-      fetch('/api/listings').then(res => res.json())
-    ]).then(([admin, listings]) => {
-      setAdminData({ ...admin, listings: listings.listings })
-    }).catch(() => setAdminData({ listings: [], trends: [] }))
+    // Fetch listings
+    fetch('/api/listings').then(res => res.json())
+      .then((data) => {
+        setAdminData({ listings: data.listings || [] })
+      }).catch(() => setAdminData({ listings: [] }))
 
     return () => {
       window.removeEventListener("search-listings", handleSearch)
@@ -39,16 +37,20 @@ export function ListingsGrid() {
     }
   }, [])
 
-  const handleWhatsAppClick = (listing: any) => {
-    const status = (adminData?.listings || []).find((l: any) => l.id === listing.id)?.status
-    if (status === 'SOLD') {
+  const handleWhatsAppClick = (e: React.MouseEvent, listing: any) => {
+    e.stopPropagation()
+    if (listing.status === 'SOLD') {
       toast.error(t("Cette annonce est vendue", "هذا الإعلان مباع"))
       return
     }
     if (!listing.whatsapp) return
-    const message = encodeURIComponent(`Bonjour, je suis intéressé par votre annonce : ${listing.titleFr}`)
+    const message = encodeURIComponent(`Bonjour, je suis intéressé par votre annonce : ${listing.title}`)
     const whatsappUrl = `https://wa.me/${listing.whatsapp}?text=${message}`
     router.push(`/safety?redirect=${encodeURIComponent(whatsappUrl)}`)
+  }
+
+  const handleCardClick = (id: string) => {
+    router.push(`/listings/${id}`)
   }
   const ArrowIcon = dir === "rtl" ? ChevronLeft : ChevronRight
 
@@ -122,7 +124,8 @@ export function ListingsGrid() {
             {filteredListings.map((listing: any) => (
               <div
                 key={listing.id}
-                className={`group bg-card rounded-2xl overflow-hidden border border-border hover:border-accent/50 transition-all duration-300 relative ${listing.status === 'SOLD' ? "opacity-75" : ""}`}
+                onClick={() => handleCardClick(listing.id)}
+                className={`group bg-card rounded-2xl overflow-hidden border border-border hover:border-accent/50 transition-all duration-300 relative cursor-pointer ${listing.status === 'SOLD' ? "opacity-75" : ""}`}
               >
                 {listing.status === 'SOLD' && (
                   <div className="absolute inset-0 z-20 pointer-events-none">
@@ -144,7 +147,10 @@ export function ListingsGrid() {
 
                   {/* Save Button */}
                   <button
-                    onClick={() => toggleSave(listing.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleSave(listing.id)
+                    }}
                     className={`absolute top-3 ${dir === "rtl" ? "left-3" : "right-3"} w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center transition-transform hover:scale-110`}
                   >
                     <Heart
@@ -162,6 +168,7 @@ export function ListingsGrid() {
                       <h3 className="text-lg font-bold text-foreground group-hover:text-accent transition-colors">
                         {listing.title}
                       </h3>
+                      {/* Brand/Model details often empty if not properly mapped, ensuring visibility */}
                       <p className="text-sm text-muted-foreground">{listing.brand} {listing.model}</p>
                     </div>
                     <p className="text-xl font-black text-accent whitespace-nowrap">{formatPrice(listing.price)}</p>
@@ -194,7 +201,7 @@ export function ListingsGrid() {
                   ) : (
                     <Button 
                       className="w-full bg-green-600 hover:bg-green-700 text-foreground font-semibold"
-                      onClick={() => handleWhatsAppClick(listing)}
+                      onClick={(e) => handleWhatsAppClick(e, listing)}
                     >
                       <MessageSquare className={`h-4 w-4 ${dir === "rtl" ? "ml-2" : "mr-2"}`} />
                       {t("Contacter", "تواصل")}
