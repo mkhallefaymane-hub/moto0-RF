@@ -181,15 +181,15 @@ export function ListingsGrid() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Gauge className="h-4 w-4 flex-shrink-0" />
-                      <span>{listing.mileage} km</span>
+                      <span>{listing.mileage || "—"} km</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4 flex-shrink-0" />
-                      <span>{listing.year}</span>
+                      <span>{listing.year || "—"}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Fuel className="h-4 w-4 flex-shrink-0" />
-                      <span>{listing.fuel}</span>
+                      <span>{listing.fuel || "—"}</span>
                     </div>
                   </div>
 

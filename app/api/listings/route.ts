@@ -43,6 +43,9 @@ export async function POST(req: Request) {
       images: body.images || [],
       whatsapp: normalizeWhatsApp(body.whatsapp || body.contact),
       status: 'PENDING',
+      mileage: parseInt(body.mileage) || 0,
+      year: parseInt(body.year) || 0,
+      fuel: body.fuel || "-",
     };
 
     const { data, error } = await supabaseAdmin

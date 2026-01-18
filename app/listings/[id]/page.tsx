@@ -124,17 +124,17 @@ export default function ListingDetailsPage() {
               <div className="p-4 rounded-2xl bg-secondary/30 border border-border flex flex-col items-center text-center gap-1">
                 <Gauge className="h-5 w-5 text-accent" />
                 <span className="text-xs text-muted-foreground">{t("Kilométrage", "المسافة")}</span>
-                <span className="font-bold">{listing.mileage} km</span>
+                <span className="font-bold">{listing.mileage || "—"} km</span>
               </div>
               <div className="p-4 rounded-2xl bg-secondary/30 border border-border flex flex-col items-center text-center gap-1">
                 <Calendar className="h-5 w-5 text-accent" />
                 <span className="text-xs text-muted-foreground">{t("Année", "السنة")}</span>
-                <span className="font-bold">{listing.year}</span>
+                <span className="font-bold">{listing.year || "—"}</span>
               </div>
               <div className="p-4 rounded-2xl bg-secondary/30 border border-border flex flex-col items-center text-center gap-1">
                 <Fuel className="h-5 w-5 text-accent" />
                 <span className="text-xs text-muted-foreground">{t("Carburant", "الوقود")}</span>
-                <span className="font-bold">{listing.fuel || "-"}</span>
+                <span className="font-bold">{listing.fuel || "—"}</span>
               </div>
             </div>
 
