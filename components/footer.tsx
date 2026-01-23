@@ -51,11 +51,6 @@ export function Footer() {
               </li>
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  {t("Enchères", "المزادات")}
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   {t("Concessionnaires", "الوكلاء")}
                 </a>
               </li>

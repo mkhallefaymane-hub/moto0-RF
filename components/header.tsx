@@ -57,18 +57,6 @@ export function Header() {
             >
               {t("Publier une annonce", "نشر إعلان")}
             </button>
-            <button 
-              onClick={() => navigateTo("/auctions")} 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t("Enchères", "المزادات")}
-            </button>
-            <button 
-              onClick={() => navigateTo("/news")} 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t("Actualités", "الأخبار")}
-            </button>
           </nav>
 
           {/* Desktop Actions */}
@@ -159,18 +147,6 @@ export function Header() {
                 className="text-left text-sm font-medium text-muted-foreground hover:text-foreground"
               >
                 {t("Publier une annonce", "نشر إعلان")}
-              </button>
-              <button 
-                onClick={() => navigateTo("/auctions")} 
-                className="text-left text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {t("Enchères", "المزادات")}
-              </button>
-              <button 
-                onClick={() => navigateTo("/news")} 
-                className="text-left text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                {t("Actualités", "الأخبار")}
               </button>
               <Button 
                 className="bg-foreground text-background hover:bg-foreground/90 font-semibold w-full mt-2"
