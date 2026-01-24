@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://www.moto0.com/sitemap.xml
